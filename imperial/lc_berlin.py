@@ -1,8 +1,37 @@
-import sys
+from main import read_from_excel, write_to_excel, test_data_dict
 
-sys.path.append("../imperial")
+file = r"Наличие склада на 16.01.2024 .xlsx"
+sheet = "Лист2"
+cols = list(range(3))
 
-from main import test_data_dict
+data = read_from_excel(file, sheet, cols)
+
+# dict_keys(['Бренд', 'Вид', 'Характеристика'])
+brand = data["Бренд"]
+product_type = data["Вид"]
+specs = data["Характеристика"]
+
+
+def split_clean_strings(
+    string: str, delimiter: str, replace_from=None, replace_to=None
+) -> list:
+    """
+
+    :param string: string to process | str
+    :param delimiter: delimiter for splitting string | str
+    :param replace_from: if used, selects the pattern in substring to replace
+    :param replace_to: if used with replace_from-parameter, used as replace
+           for replaced pattern
+    :return: list of initial string's parts | list
+    """
+    substrings_list = string.split(delimiter)
+    for i in range(len(substrings_list)):
+        substrings_list[i] = substrings_list[i].strip()
+        if replace_from:
+            substrings_list[i] = substrings_list[i].replace(
+                replace_from, replace_to
+            )
+    return substrings_list
 
 
 def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
@@ -46,63 +75,10 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
     return clear_empty_keys(prepared_data)
 
 
-test_asset = {
-    "IB-Boris N. :Black :Black-Clear Gradient :Flex ": [
-        "-Boris N.",
-        "Black",
-        "Black-Clear Gradient",
-        "Flex",
-    ],
-    "IB-Boris N. :Chrome :Black :BlackClear :Flex": [
-        "-Boris N.",
-        "Chrome",
-        "Black",
-        "BlackClear",
-        "Flex",
-    ],
-    "IB-Boris N. :GunMetal :Black :BrownSand :Flex": [
-        "-Boris N.",
-        "GunMetal",
-        "Black",
-        "BrownSand",
-        "Flex",
-    ],
-    "IB-Carla L. :Off-White :Warm Grey :Summerhaze :Flex": [
-        "-Carla L.",
-        "Off-White",
-        "Warm Grey",
-        "Summerhaze",
-        "Flex",
-    ],
-}
-
-output_example = {
-    "title": {
-        0: "IB-Boris N. :Black :Black-Clear Gradient :Flex ",
-        1: "IB-Boris N. :Chrome :Black :BlackClear :Flex",
-        2: "IB-Boris N. :GunMetal :Black :BrownSand :Flex",
-        3: "IB-Carla L. :Off-White :Warm Grey :Summerhaze :Flex",
-    },
-    "first part": {
-        0: "-Boris N.",
-        1: "-Boris N.",
-        2: "-Boris N.",
-        3: "-Carla L.",
-    },
-    "second part": {0: "Black", 1: "Chrome", 2: "GunMetal", 3: "Off-White"},
-    "third part": {
-        0: "Black-Clear Gradient",
-        1: "Black",
-        2: "Black",
-        3: "Warm Grey",
-    },
-    "fourth part": {
-        0: "Flex",
-        1: "BlackClear",
-        2: "BrownSand",
-        3: "Summerhaze",
-    },
-    "fifth part": {1: "Flex", 2: "Flex", 3: "Flex"},
+lc_berlin = {
+    specs[i]: split_clean_strings(specs[i], ":", "IB ", "")
+    for i in brand.keys()
+    if brand[i] == "Ic-berlin" and product_type[i] == "Оптическая оправа"
 }
 
 target_keys = [
@@ -116,5 +92,11 @@ target_keys = [
     "seventh part",
 ]
 
-for_test = prepare_data_for_pandas(test_asset, target_keys)
-test_data_dict(for_test, output_example)
+to_write = prepare_data_for_pandas(lc_berlin, target_keys)
+
+try:
+    write_to_excel(to_write, "lc_berlin_splitted.xlsx")
+except Exception as e:
+    print(e)
+else:
+    print("Готово")
