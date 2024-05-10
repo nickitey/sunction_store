@@ -1,3 +1,9 @@
+import sys
+
+sys.path.append("../imperial")
+
+from main import test_data_dict
+
 test_asset = {
     "IB-Boris N. :Black :Black-Clear Gradient :Flex ": [
         "-Boris N.",
@@ -59,25 +65,34 @@ output_example = {
 
 
 def prepare_data_for_pandas(data, keys_list):
-    count = 0
-    prepared_data = {}
-    for key in keys_list:
-        prepared_data[key] = {}
-    for i in range(len(data)):
-        prepared_data[keys_list[0]][i] = keys_list[0]
-        for y in range(1, len(data[keys_list[i]])):
-            try:
-                data[keys_list[i][y]][i] = lc_berlin[lc_berlin_keys[i]][0]
-                to_write["second part"][i] = lc_berlin[lc_berlin_keys[i]][1]
-                to_write["third part"][i] = lc_berlin[lc_berlin_keys[i]][2]
-                to_write["fourth part"][i] = lc_berlin[lc_berlin_keys[i]][3]
-                to_write["fifth part"][i] = lc_berlin[lc_berlin_keys[i]][4]
-                to_write["sixth part"][i] = lc_berlin[lc_berlin_keys[i]][5]
-                to_write["seventh part"][i] = lc_berlin[lc_berlin_keys[i]][6]
-                to_write["eighth part"][i] = lc_berlin[lc_berlin_keys[i]][7]
-            except IndexError:
-                print(
-                    f"{count}: Elements in {lc_berlin_keys[i]} have run out."
-                )
-                count += 1
-                continue
+
+    def clear_empty_keys(dictionary):
+        return {
+            key: dictionary[key]
+            for key in dictionary
+            if len(dictionary[key]) != 0
+        }
+
+    data_keys = list(data.keys())
+    prepared_data = {key: {} for key in keys_list}
+    parameters_amount = len(data)
+    for i in range(parameters_amount):
+        prepared_data[keys_list[0]][i] = data_keys[i]
+        for y in range(1, len(data[data_keys[i]]) + 1):
+            prepared_data[keys_list[y]][i] = data[data_keys[i]][y - 1]
+    return clear_empty_keys(prepared_data)
+
+
+target_keys = [
+    "title",
+    "first part",
+    "second part",
+    "third part",
+    "fourth part",
+    "fifth part",
+    "sixth part",
+    "seventh part",
+]
+
+for_test = prepare_data_for_pandas(test_asset, target_keys)
+test_data_dict(for_test, output_example)
