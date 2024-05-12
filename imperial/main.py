@@ -1,5 +1,6 @@
 import logging
 import math
+from os import path, rename, walk
 
 import pandas as pd
 import pillow_heif
@@ -115,7 +116,7 @@ def clear_empty_keys(dictionary: dict) -> dict:
         }
     except TypeError:
         raise TypeError(
-            f"The type of data in dictionary has no length, so cannot be empty."
+            "The type of data in dictionary has no length, so cannot be empty."
         )
 
 
@@ -178,3 +179,34 @@ def convert_image_from_heic_to_jpg(file_path):
         return new_file_path
     except Exception as e:
         logging.exception(e)
+
+
+def collect_paths_from_tree(root_url, collect_files=False):
+    dirs_list = []
+    files_list = []
+    for cur_dir, subdirs, files in walk(root_url):
+        dirs_list.append(path.abspath(cur_dir))
+        if collect_files:
+            for file in files:
+                path_to_file = f"{cur_dir}/{file}"
+                files_list.append(path_to_file)
+    return dirs_list, files_list
+
+
+def rename_os_items(handler, source, *lists_to_handle):
+    for items_list in lists_to_handle:
+        for old_item_name in items_list:
+            item_name_elements = old_item_name.split("/")
+            item_name_elements[-1] = handler(item_name_elements[-1])
+            new_item_name = "/".join(item_name_elements)
+            if old_item_name == new_item_name:
+                continue
+            try:
+                rename(old_item_name, new_item_name)
+            except FileNotFoundError as e:
+                logging.exception(e)
+                lists_to_handle = collect_paths_from_tree(source, True)
+                return rename_os_items(handler, source, *lists_to_handle)
+            else:
+                logging.info(f"{old_item_name} renamed to {new_item_name}")
+    return collect_paths_from_tree(source, True)
