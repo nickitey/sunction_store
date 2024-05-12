@@ -1,44 +1,49 @@
-import pandas as pd
+import logging
 import math
 
+import pandas as pd
+import pillow_heif
+from PIL import Image
 
-nan = float('nan')
+nan = float("nan")
+
+pillow_heif.register_heif_opener()
 
 
-def read_from_excel(path, sheet, cols):
-    xl = pd.ExcelFile(path)
+def read_from_excel(path_to_file, sheet, cols):
+    xl = pd.ExcelFile(path_to_file)
     dataframe = pd.read_excel(xl, sheet, usecols=cols)
     return dataframe.to_dict()
 
 
-def write_to_excel(data_dict, path, sheet='python'):
+def write_to_excel(data_dict, path_to_file, sheet="python"):
     to_write_db = pd.DataFrame.from_dict(data_dict)
-    to_write_db.to_excel(path, sheet_name=sheet)
+    to_write_db.to_excel(path_to_file, sheet_name=sheet)
 
 
 def test_data_dict(data_dict, test_asset):
     def compare_details(item1, item2):
         if isinstance(item1, float) and isinstance(item2, float):
             if not (math.isnan(item1) and math.isnan(item2)):
-                print('nan and nan')
+                print("nan and nan")
                 return False
             return True
         elif isinstance(item1, list) and isinstance(item2, list):
             if len(item1) != len(item2):
-                print('different length')
+                print("different length")
                 return False
             for i in range(len(item1)):
                 if isinstance(item1[i], float) and isinstance(item2[i], float):
                     if not (math.isnan(item1[i]) and math.isnan(item2[i])):
-                        print('nan and nan in list')
+                        print("nan and nan in list")
                         return False
                 elif item1[i] != item2[i]:
-                    print('different elements in list')
+                    print("different elements in list")
                     print(type(item1[i]), type(item2[i]))
                     print(item1[i], item2[i])
                     return False
         else:
-            print('different types')
+            print("different types")
             return False
         return True
 
@@ -48,8 +53,8 @@ def test_data_dict(data_dict, test_asset):
             checker = test_asset[item]
             checked = data_dict[item]
         except KeyError:
-            print(f'Test failed with {item}.')
-            print(f'Key {item} is absent in tested dictionary.')
+            print(f"Test failed with {item}.")
+            print(f"Key {item} is absent in tested dictionary.")
             return False
         try:
             assert checker == checked
@@ -57,11 +62,15 @@ def test_data_dict(data_dict, test_asset):
             if compare_details(checker, checked):
                 continue
             test_status = False
-            print(f'Test failed with {item}.')
-            print(f'Expected: {test_asset[item]}, '
-                  f'type - {type(test_asset[item])}.')
-            print(f"Received: {data_dict[item]}, "
-                  f"type - {type(data_dict[item])}.")
+            print(f"Test failed with {item}.")
+            print(
+                f"Expected: {test_asset[item]}, "
+                f"type - {type(test_asset[item])}."
+            )
+            print(
+                f"Received: {data_dict[item]}, "
+                f"type - {type(data_dict[item])}."
+            )
     if test_status:
         print("All tests passed")
     return test_status
@@ -132,15 +141,40 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
 
 
 def string_proceed(proc_string):
-    return proc_string.lower().replace(' ', '_').replace(',', '').replace(';', '_').replace('\'', '').replace('.', '_')
+    return (
+        proc_string.lower()
+        .replace(" ", "_")
+        .replace(",", "")
+        .replace(";", "_")
+        .replace("'", "")
+        .replace(".", "_")
+    )
 
 
 def clean_string_from_forbidden_symbols(string, handler):
     file_extension = string[-5:]
-    extensions = ['.jpg', '.heic', '.webm']
+    extensions = [".jpg", ".heic", ".webm"]
     for extension in extensions:
         if file_extension.endswith(extension):
             string_parts = string.split(extension)
             proceeded_parts = list(map(handler, string_parts))
             return extension.join(proceeded_parts)
     return handler(string)
+
+
+def convert_image_from_heic_to_jpg(file_path):
+    new_file_name = file_path.strip(".heic")
+    new_file_path = f"{new_file_name}.jpg"
+    try:
+        img = Image.open(file_path)
+        img.save(
+            new_file_path,
+            format="JPEG",
+            quality=100,
+            optimize=True,
+            progressive=True,
+        )
+        logging.info(f"{file_path} converted into {new_file_name}.jpg.")
+        return new_file_path
+    except Exception as e:
+        logging.exception(e)
