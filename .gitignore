@@ -1,2 +1,4 @@
 .idea
 *pycache*
+*.log
+*.xlsx

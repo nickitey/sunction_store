@@ -10,7 +10,7 @@ logging.basicConfig(
     datefmt="%d/%m/%Y %I:%M:%S %p",
     filename="heic_converter.log",
     encoding="utf-8",
-    level=main.logging.INFO,
+    level=logging.INFO,
 )
 
 
@@ -53,6 +53,12 @@ converted_file_list = [
     main.convert_image_from_heic_to_jpg(file) if ".heic" in file else file
     for file in raw_files
 ]
+
+# Когда файл будет запущен на рабочем датасете, нужно убрать вызов
+# main.clear_empty_keys, в данном случае он используется, чтобы не тащить
+# в пробный файл ~2500 незадействованных наименований моделей, которые
+# не использовались во время написания кода и отладки.
+
 prepared_for_conversion = main.clear_empty_keys(
     fill_table_with_links(converted_file_list, prep_data, main.string_proceed)
 )
