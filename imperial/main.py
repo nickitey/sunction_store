@@ -152,15 +152,15 @@ def string_proceed(proc_string):
     )
 
 
-def clean_string_from_forbidden_symbols(string, handler):
+def clean_string_from_forbidden_symbols(string):
     file_extension = string[-5:]
     extensions = [".jpg", ".heic", ".webm"]
     for extension in extensions:
         if file_extension.endswith(extension):
             string_parts = string.split(extension)
-            proceeded_parts = list(map(handler, string_parts))
+            proceeded_parts = list(map(string_proceed, string_parts))
             return extension.join(proceeded_parts)
-    return handler(string)
+    return string_proceed(string)
 
 
 def convert_image_from_heic_to_jpg(file_path):
