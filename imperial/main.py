@@ -222,6 +222,11 @@ def collect_paths_from_tree(root_url, collect_files=False):
             for file in files:
                 path_to_file = f"{cur_dir}/{file}"
                 files_list.append(path_to_file)
+    del dirs_list[0]
+    # Первый путь в списке - это имя самой папки, с которой начинается
+    # рекурсивный обход. Нам он не нужен, потому что менять имя исходной
+    # папки вряд ли нужно, в крайнем случае, это всегда можно сделать
+    # позже вручную.
     return dirs_list, files_list
 
 
