@@ -1,13 +1,12 @@
 import logging
-import os
-from datetime import datetime
+from typing import Callable
 
 import main
 
 logging.basicConfig(
     filemode="w",
     format="%(asctime)s %(levelname)s:%(message)s\n",
-    datefmt="%d/%m/%Y %I:%M:%S %p",
+    datefmt="%d/%m/%Y %H:%M:%S",
     filename="heic_converter.log",
     encoding="utf-8",
     level=logging.INFO,
@@ -43,10 +42,11 @@ model = input_data["Характеристика"]
 
 prep_data = {}
 for value in model.values():
+    # Чуз ё файтер, как говорится
     prep_data[value] = set()
+    # prep_data[value] = list()
 
-
-root = f"{os.getcwd()}/opravy"
+root = "/home/nikita/Desktop/Медицинские оправы"
 
 raw_directories, raw_files = main.collect_paths_from_tree(root, True)
 converted_file_list = [
@@ -54,24 +54,11 @@ converted_file_list = [
     for file in raw_files
 ]
 
-# Когда файл будет запущен на рабочем датасете, нужно убрать вызов
-# main.clear_empty_keys, в данном случае он используется, чтобы не тащить
-# в пробный файл ~2500 незадействованных наименований моделей, которые
-# не использовались во время написания кода и отладки.
-
-prepared_for_conversion = main.clear_empty_keys(
-    fill_table_with_links(converted_file_list, prep_data, main.string_proceed)
+prepared_for_conversion = fill_table_with_links(
+    converted_file_list, prep_data, main.clean_string_from_forbidden_symbols
 )
 
-# Хотя функция и возвращает список переименованных директорий и файлов,
-# Фактически результат работы этой нам не нужен. Данные, которые пойдут
-# в таблицу, уже обработаны (очищены от запрещенных символов и приведены
-# к требуемому "стандарту", скажем так (catalog/suppliers/imperial/ и т.д.)
-
-main.rename_os_items(
-    main.clean_string_from_forbidden_symbols, root, raw_directories, raw_files
-)
-
+"""
 keys_list = [
     "first",
     "second",
@@ -81,9 +68,38 @@ keys_list = [
     "sixth",
     "seventh",
     "eighth",
-    "nineth",
+    "ninth",
     "tenth",
+    "eleventh",
+    "twelfth",
+    "thirteenth",
+    "fourteenth",
+    "fifteenth",
+    "sixteenth",
+    "seventeenth",
+    "eighteenth",
+    "nineteenth",
+    "twentieth",
+    "twenty first",
+    "twenty second",
+    "twenty third",
+    "twenty fourth",
+    "twenty fifth",
+    "twenty sixth",
+    "twenty seventh",
+    "twenty eighth",
+    "twenty ninth",
+    "thirtieth"
 ]
+"""
+# Я не ожидал, что в папке может быть так много файлов, поэтому вручную
+# прописывать названия столбцов уже не получится, нужно автоматизированное
+# решение
+
+keys_list = []
+for i in range(1000):
+    keys_list.append(f"column no. {i}")
+
 to_write = main.prepare_data_for_pandas(prepared_for_conversion, keys_list)
 
 main.write_to_excel(to_write, "imperial_optic_links.xlsx")
