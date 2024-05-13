@@ -1,6 +1,7 @@
 import logging
 import math
 import os.path
+from datetime import datetime
 from os import path, rename, walk
 
 import pandas as pd
@@ -153,8 +154,10 @@ def clear_empty_keys(dictionary: dict) -> dict:
             if len(dictionary[key]) != 0
         }
     except TypeError:
-        err_message = ("The type of data in dictionary has no length,"
-                       " so cannot be empty.")
+        err_message = (
+            "The type of data in dictionary has no length,"
+            " so cannot be empty."
+        )
         logging.exception(err_message)
         raise SunctionStoreScriptError(err_message)
 
@@ -205,7 +208,9 @@ def string_proceed_universal(proc_string, replacements_dict, lower=False, upper=
     if upper:
         proc_string = proc_string.upper()
     for replace_pattern in replacements_dict:
-        proc_string = proc_string.replace(replace_pattern, replacements_dict[replace_pattern])
+        proc_string = proc_string.replace(
+            replace_pattern, replacements_dict[replace_pattern]
+        )
     return proc_string
 
 
@@ -240,8 +245,10 @@ def convert_image_from_heic_to_jpg(file_path):
 
 def collect_paths_from_tree(root_url, collect_files=False):
     if not os.path.exists(root_url):
-        err_message = (f'{root_url} does not exist. Check the path is correct '
-                       f'and retry.')
+        err_message = (
+            f"{root_url} does not exist. Check the path is correct "
+            f"and retry."
+        )
         logging.exception(err_message)
         raise SunctionStoreScriptError(err_message)
     dirs_list = []
