@@ -238,7 +238,7 @@ def string_proceed_universal(
     строке не останется ни одной точки с запятой.
     """
     if lower and upper:
-        message = 'Ты уж определись как-то, что ты хочешь со строй сделать.'
+        message = 'Ты уж определись как-то, что ты хочешь со строкой сделать.'
         raise SunctionStoreScriptError(message)
     if lower:
         proc_string = proc_string.lower()
@@ -253,12 +253,14 @@ def string_proceed_universal(
 
 def clean_string_from_forbidden_symbols(string):
     file_extension = string[-5:]
-    extensions = [".jpg", ".heic", ".webm", '.jpeg']
+    extensions = [".jpg", ".heic", ".webm", ".jpeg",
+                  ".JPG", ".HEIC", ".JPEG", ".WEBM",
+                  ".PNG", '.png']
     for extension in extensions:
         if file_extension.endswith(extension):
             string_parts = string.split(extension)
             proceeded_parts = list(map(string_proceed_casual, string_parts))
-            return extension.join(proceeded_parts)
+            return extension.lower().join(proceeded_parts)
     return string_proceed_casual(string)
 
 
