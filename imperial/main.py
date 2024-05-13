@@ -1,5 +1,6 @@
 import logging
 import math
+import os.path
 from os import path, rename, walk
 
 import pandas as pd
@@ -208,6 +209,11 @@ def convert_image_from_heic_to_jpg(file_path):
 
 
 def collect_paths_from_tree(root_url, collect_files=False):
+    if not os.path.exists(root_url):
+        err_message = (f'{root_url} does not exist. Check the path is correct '
+                       f'and retry.')
+        logging.exception(err_message)
+        raise SunctionStoreScriptError(err_message)
     dirs_list = []
     files_list = []
     for cur_dir, subdirs, files in walk(root_url):
