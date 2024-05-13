@@ -86,13 +86,15 @@ keys_list = [
 ]
 to_write = main.prepare_data_for_pandas(prepared_for_conversion, keys_list)
 
-try:
-    main.write_to_excel(to_write, "lets_try_it.xlsx")
-except Exception as e:
-    logging.exception(e)
-else:
-    day = datetime.now().strftime("%d-%m-%Y")
-    time = datetime.now().strftime("%H:%M:%S")
-    message = f"Работа завершена {day} в {time}."
-    logging.info(message)
-    print(f"Готово, дата: {day}, время: {time}")
+main.write_to_excel(to_write, "imperial_optic_links.xlsx")
+
+# Хотя функция и возвращает список переименованных директорий и файлов,
+# Фактически результат работы этой нам не нужен. Данные, которые пойдут
+# в таблицу, уже обработаны (очищены от запрещенных символов и приведены
+# к требуемому "стандарту", скажем так (catalog/suppliers/imperial/ и т.д.)
+# Поэтому заниматься фактическим переименованием директорий мы будем уже
+# после того, как данные собраны и записаны в таблицу.
+
+main.rename_os_items(
+    root, main.clean_string_from_forbidden_symbols, raw_directories, raw_files
+)

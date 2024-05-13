@@ -20,15 +20,44 @@ class SunctionStoreScriptError(Exception):
         return self.message
 
 
-def read_from_excel(path_to_file, sheet, cols):
+def read_from_excel(path_to_file: str, sheet: str, cols: list) -> dict:
+    """
+    Функция парсит xlsx-файл и возвращает словарь словарей, где ключи -
+    названия столбцов, значения - словари, где ключи - номера строк,
+    значения - соответствеющие значения из ячеек таблицы.
+
+    :param path_to_file: Путь к файлу в формате *.xlsx
+    :param sheet: Название листа, на котором находятся требуемые данные
+    :param cols: Список колонок, которые необходимо собрать
+    :return: Словарь словарей описанного формата
+    """
     xl = pd.ExcelFile(path_to_file)
     dataframe = pd.read_excel(xl, sheet, usecols=cols)
     return dataframe.to_dict()
 
 
-def write_to_excel(data_dict, path_to_file, sheet="python"):
+def write_to_excel(data_dict: dict, path_to_file: str, sheet: str = "python") -> None:
+    """
+    Функция принимает подготовленные данные и записывает их в файл *.xlsx.
+
+    :param data_dict: Словарь данных для записи в файл.
+    :param path_to_file: Путь к файлу. Если такого файла нет, он будет создан.
+    Если файл есть - перезапишется без сожаления и возможности восстановления
+    :param sheet: Название листа, на который будут записаны данные.
+    По-умолчанию - "python".
+    :return: Ничего.
+    """
     to_write_db = pd.DataFrame.from_dict(data_dict)
-    to_write_db.to_excel(path_to_file, sheet_name=sheet)
+    try:
+        to_write_db.to_excel(path_to_file, sheet_name=sheet)
+    except Exception as e:
+        logging.exception(e)
+    else:
+        day = datetime.now().strftime("%d-%m-%Y")
+        time = datetime.now().strftime("%H:%M:%S")
+        message = f"Работа завершена {day} в {time}."
+        logging.info(message)
+        print(message)
 
 
 def test_data_dict(data_dict, test_asset):
@@ -231,7 +260,7 @@ def collect_paths_from_tree(root_url, collect_files=False):
     return dirs_list, files_list
 
 
-def rename_os_items(handler, source, *lists_to_handle):
+def rename_os_items(source, handler, *lists_to_handle):
     for items_list in lists_to_handle:
         for old_item_name in items_list:
             item_name_elements = old_item_name.split("/")
