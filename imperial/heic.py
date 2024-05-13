@@ -13,7 +13,33 @@ logging.basicConfig(
 )
 
 
-def fill_table_with_links(processed_data, data_template, handler=None):
+def fill_table_with_links(processed_data: list, data_template: dict, handler: bool | Callable = None) -> dict:
+    """
+
+    :param processed_data: Коллекция обрабатываемых данных, словарь, где
+    ключ - артикул или иная индивидуальная характеристика товара
+    :param data_template: Заготовка итоговой коллекции, которая будет
+    преобразована в датафрейм для записи в *.xlsx-файл.
+    :param handler: Функция-обработчик данных, если есть, то применяется
+    на обрабатываемых данных (например, обработка строк от посторонних
+    и запрещенных символов). Значение по-умолчанию: None
+    :return: Заполненная данными итоговая коллекция.
+
+    Предполагается, что data-template представляет собой словарь, в котором
+    ключами выступают артикулы товаров, а значениями - коллекции параметров,
+    которые впоследствии будут рассортированы по столбцам таблицы. То есть,
+    в итоговой таблице одному товару будет соответствовать строка, в которой
+    в первом столбце будет артикул (как индивидуальная характеристика),
+    а в остальных столбцах по одной характеристике, в данном случае - ссылки
+    Подходящих коллекций может быть две: множество (set) и список (list).
+    Использование set сомнительно, поскольку это неиндексируемая коллекция,
+    поэтому при подготовке данных для pandas необходима конвертация в list,
+    но при этом не гарантируется, что в списке элементы будут в том же порядке,
+    в каком они были в множестве.
+    Необходимо подумать о целесообразности изначального выбора в качестве
+    коллекции списка и последущей проверке на каждой итерации наличия в нем
+    дубликата добавляемого элемента
+    """
     for filename in processed_data:
         if ".heic" in filename:
             continue
@@ -22,11 +48,19 @@ def fill_table_with_links(processed_data, data_template, handler=None):
         model_folder = parts_of_way[-2]
         image_file = parts_of_way[-1]
         if model_folder not in data_template:
+            # Если все же будет list, то необходимо поменять тип данных здесь...
+            # data_template[model_folder] = list()
             data_template[model_folder] = set()
         link_template = "catalog/suppliers/imperial/{}/{}/{}"
         link = link_template.format(brand_folder, model_folder, image_file)
         if handler:
             link = handler(link)
+        # if link not in data_template[model_folder]:
+        #    data_template[model_folder].append(link)
+        # ...и добавить вот эту проверку вхождения ссылки в обрабатываемый список
+        # Мне это не нравится, потому что алгоритм становится квадратичной
+        # сложности: каждый элемент списка сравнивается с другими элементами
+        # списка эквивалетное длине списка раз
         data_template[model_folder].add(link)
     return data_template
 

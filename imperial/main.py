@@ -177,21 +177,35 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
     parameters_amount = len(dataset)
     for i in range(parameters_amount):
         list_in_dataset = dataset[data_keys[i]]
+        if isinstance(list_in_dataset, set):
+            list_in_dataset = list(list_in_dataset)
+        # На случай если обрабатываемые параметры артикулов будут представлены
+        # множеством, здесь мы преобразуем их в список, чтобы не напороться
+        # на IndexError в попытке получить элемент множества по индексу
         prepared_data[keys_list[0]][i] = data_keys[i]
         for y in range(1, len(dataset[data_keys[i]]) + 1):
             try:
                 prepared_data[keys_list[y]][i] = list_in_dataset[y - 1]
             except IndexError as e:
-                error_message = (f'{e} with index = {y},\n'
-                                 f'last value before error = {list_in_dataset[y-1]},\n' 
-                                 f'common dataset length = {len(list_in_dataset)},\n'
-                                 f'keys prepared = {len(keys_list)}')
+                error_message = (
+                    f"{e} with index = {y},\n"
+                    f"last value before error = {list_in_dataset[y-1]},\n"
+                    f"common dataset length = {len(list_in_dataset)},\n"
+                    f"keys prepared = {len(keys_list)}"
+                )
                 logging.exception(error_message)
                 raise SunctionStoreScriptError(error_message)
     return clear_empty_keys(prepared_data)
 
 
-def string_proceed_casual(proc_string):
+def string_proceed_casual(proc_string: str) -> str:
+    """
+    Простой обработчик строк, убирает запятые, апострофы (одинарные кавычки),
+    заменяет пробелы, точки с запятой, и точки на нижние подчеркивания.
+
+    :param proc_string: Обрабатываемая строка
+    :return: Обработанная строка
+    """
     return (
         proc_string.lower()
         .replace(" ", "_")
@@ -202,7 +216,30 @@ def string_proceed_casual(proc_string):
     )
 
 
-def string_proceed_universal(proc_string, replacements_dict, lower=False, upper=False):
+def string_proceed_universal(
+    proc_string: str, replacements_dict: dict, lower: bool = False,
+    upper: bool = False
+) -> str:
+    """
+    Гибкий обработчик строк, заменит любые символы на любые в строке.
+    Альтернатива длинной цепочке вызовов метода replace().
+
+    :param proc_string: Обрабатываемая строка.
+    :param replacements_dict: Словарь, где ключи - символы (их комбинации),
+    которые нужно заменить, значения - символы (их комбинации), на которые
+    их нужно заменить.
+    :param lower: Если True, переводит строку в нижний регистр.
+    :param upper: Если True, переводит строку в верхний регистр.
+    :return: Обработанная строка.
+
+    NB! Функция проверяет наличие символов (комбинаций), которые нужно
+    заменить, по очереди их вхождения в словарь. Поэтому если в словаре
+    замен сначала встретится {'.': ';'}, а потом {';': ' '}, то в обработанной
+    строке не останется ни одной точки с запятой.
+    """
+    if lower and upper:
+        message = 'Ты уж определись как-то, что ты хочешь со строй сделать.'
+        raise SunctionStoreScriptError(message)
     if lower:
         proc_string = proc_string.lower()
     if upper:
