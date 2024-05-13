@@ -11,6 +11,14 @@ nan = float("nan")
 pillow_heif.register_heif_opener()
 
 
+class SunctionStoreScriptError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
 def read_from_excel(path_to_file, sheet, cols):
     xl = pd.ExcelFile(path_to_file)
     dataframe = pd.read_excel(xl, sheet, usecols=cols)
@@ -115,9 +123,10 @@ def clear_empty_keys(dictionary: dict) -> dict:
             if len(dictionary[key]) != 0
         }
     except TypeError:
-        raise TypeError(
-            "The type of data in dictionary has no length, so cannot be empty."
-        )
+        err_message = ("The type of data in dictionary has no length,"
+                       " so cannot be empty.")
+        logging.exception(err_message)
+        raise SunctionStoreScriptError(err_message)
 
 
 def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
@@ -144,7 +153,7 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
                     f'{e} with index = {y}, dataset = {list_in_dataset}, '
                     f'keys = {keys_list}'
                 )
-                raise e
+                raise SunctionStoreScriptError(e)
     return clear_empty_keys(prepared_data)
 
 
