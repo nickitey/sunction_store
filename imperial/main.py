@@ -134,10 +134,17 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
     prepared_data = {key: {} for key in keys_list}
     parameters_amount = len(dataset)
     for i in range(parameters_amount):
-        list_in_dataset = list(dataset[data_keys[i]])
+        list_in_dataset = dataset[data_keys[i]]
         prepared_data[keys_list[0]][i] = data_keys[i]
         for y in range(1, len(dataset[data_keys[i]]) + 1):
-            prepared_data[keys_list[y]][i] = list_in_dataset[y - 1]
+            try:
+                prepared_data[keys_list[y]][i] = list_in_dataset[y - 1]
+            except IndexError as e:
+                logging.exception(
+                    f'{e} with index = {y}, dataset = {list_in_dataset}, '
+                    f'keys = {keys_list}'
+                )
+                raise e
     return clear_empty_keys(prepared_data)
 
 
