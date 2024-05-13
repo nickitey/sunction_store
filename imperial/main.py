@@ -150,11 +150,12 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
             try:
                 prepared_data[keys_list[y]][i] = list_in_dataset[y - 1]
             except IndexError as e:
-                logging.exception(
-                    f'{e} with index = {y}, dataset = {list_in_dataset}, '
-                    f'keys = {keys_list}'
-                )
-                raise SunctionStoreScriptError(e)
+                error_message = (f'{e} with index = {y},\n'
+                                 f'last value before error = {list_in_dataset[y-1]},\n' 
+                                 f'common dataset length = {len(list_in_dataset)},\n'
+                                 f'keys prepared = {len(keys_list)}')
+                logging.exception(error_message)
+                raise SunctionStoreScriptError(error_message)
     return clear_empty_keys(prepared_data)
 
 
