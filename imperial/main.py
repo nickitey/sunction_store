@@ -148,7 +148,7 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
     return clear_empty_keys(prepared_data)
 
 
-def string_proceed(proc_string):
+def string_proceed_casual(proc_string):
     return (
         proc_string.lower()
         .replace(" ", "_")
@@ -159,15 +159,25 @@ def string_proceed(proc_string):
     )
 
 
+def string_proceed_universal(proc_string, replacements_dict, lower=False, upper=False):
+    if lower:
+        proc_string = proc_string.lower()
+    if upper:
+        proc_string = proc_string.upper()
+    for replace_pattern in replacements_dict:
+        proc_string = proc_string.replace(replace_pattern, replacements_dict[replace_pattern])
+    return proc_string
+
+
 def clean_string_from_forbidden_symbols(string):
     file_extension = string[-5:]
     extensions = [".jpg", ".heic", ".webm"]
     for extension in extensions:
         if file_extension.endswith(extension):
             string_parts = string.split(extension)
-            proceeded_parts = list(map(string_proceed, string_parts))
+            proceeded_parts = list(map(string_proceed_casual, string_parts))
             return extension.join(proceeded_parts)
-    return string_proceed(string)
+    return string_proceed_casual(string)
 
 
 def convert_image_from_heic_to_jpg(file_path):
