@@ -216,7 +216,7 @@ def string_proceed_universal(proc_string, replacements_dict, lower=False, upper=
 
 def clean_string_from_forbidden_symbols(string):
     file_extension = string[-5:]
-    extensions = [".jpg", ".heic", ".webm"]
+    extensions = [".jpg", ".heic", ".webm", '.jpeg']
     for extension in extensions:
         if file_extension.endswith(extension):
             string_parts = string.split(extension)
