@@ -1,4 +1,5 @@
 import logging
+from functools import partial
 import math
 import os.path
 from datetime import datetime
@@ -201,7 +202,7 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
 def string_proceed_casual(proc_string: str) -> str:
     """
     Простой обработчик строк, убирает запятые, апострофы (одинарные кавычки),
-    заменяет пробелы, точки с запятой, и точки на нижние подчеркивания.
+    заменяет слэши, пробелы, точки с запятой, и точки на нижние подчеркивания.
 
     :param proc_string: Обрабатываемая строка
     :return: Обработанная строка
@@ -213,6 +214,7 @@ def string_proceed_casual(proc_string: str) -> str:
         .replace(";", "_")
         .replace("'", "")
         .replace(".", "_")
+        .replace('/', '_')
     )
 
 
@@ -251,17 +253,18 @@ def string_proceed_universal(
     return proc_string
 
 
-def clean_string_from_forbidden_symbols(string):
-    file_extension = string[-5:]
-    extensions = [".jpg", ".heic", ".webm", ".jpeg",
-                  ".JPG", ".HEIC", ".JPEG", ".WEBM",
-                  ".PNG", '.png']
-    for extension in extensions:
-        if file_extension.endswith(extension):
-            string_parts = string.split(extension)
-            proceeded_parts = list(map(string_proceed_casual, string_parts))
-            return extension.lower().join(proceeded_parts)
-    return string_proceed_casual(string)
+def clean_string_from_forbidden_symbols(
+        string: str, handler: Any = None, extensions: list = None,
+        *handler_args: Any
+) -> str:
+    if extensions:
+        file_extension = string[-5:]
+        for extension in extensions:
+            if file_extension.endswith(extension):
+                string_parts = string.split(extension)
+                proceeded_parts = list(map(partial(handler, handler_args), string_parts))
+                return extension.lower().join(proceeded_parts)
+    return handler(string, *handler_args)
 
 
 def convert_image_to_jpg(file_path: str) -> str:

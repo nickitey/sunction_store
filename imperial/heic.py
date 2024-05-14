@@ -83,6 +83,12 @@ for value in model.values():
 root = "/home/nikita/Desktop/Медицинские оправы"
 
 raw_directories, raw_files = main.collect_paths_from_tree(root, True)
+
+extensions = [".jpg", ".heic", ".webm", ".jpeg",
+              ".JPG", ".HEIC", ".JPEG", ".WEBM",
+              ".PNG", ".png", ".webp", ".WEBP",
+              ".bmp", ".BMP"]
+
 converted_file_list = [
     main.convert_image_to_jpg(file) if ".heic" in file else file
     for file in raw_files
