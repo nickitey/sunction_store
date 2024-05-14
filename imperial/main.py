@@ -264,9 +264,22 @@ def clean_string_from_forbidden_symbols(string):
     return string_proceed_casual(string)
 
 
-def convert_image_from_heic_to_jpg(file_path):
-    new_file_name = file_path.strip(".heic")
-    new_file_path = f"{new_file_name}.jpg"
+def convert_image_to_jpg(file_path: str) -> str:
+    if '.heic' in file_path or '.HEIC' in file_path:
+        new_file_name = file_path.strip(".heicHEIC")
+        new_file_path = f"{new_file_name}.jpg"
+    elif '.webm' in file_path or '.WEBM' in file_path:
+        new_file_name = file_path.strip(".webmWEBM")
+        new_file_path = f"{new_file_name}.jpg"
+    elif '.bmp' in file_path or '.bmp' in file_path:
+        new_file_name = file_path.strip(".bmpBMP")
+        new_file_path = f"{new_file_name}.jpg"
+    else:
+        splitted_file_path = file_path.split('.')
+        extension = splitted_file_path[-1]
+        error_message = f"Files with .{extension} are not supported."
+        logging.exception(error_message)
+        raise SunctionStoreScriptError(error_message)
     try:
         img = Image.open(file_path)
         img.save(

@@ -84,7 +84,7 @@ root = "/home/nikita/Desktop/Медицинские оправы"
 
 raw_directories, raw_files = main.collect_paths_from_tree(root, True)
 converted_file_list = [
-    main.convert_image_from_heic_to_jpg(file) if ".heic" in file else file
+    main.convert_image_to_jpg(file) if ".heic" in file else file
     for file in raw_files
 ]
 
