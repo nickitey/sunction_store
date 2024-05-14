@@ -1,9 +1,9 @@
 import logging
-from functools import partial
 import math
 import os.path
 from datetime import datetime
 from os import path, rename, walk
+from typing import Any, Callable
 
 import pandas as pd
 import pillow_heif
@@ -38,7 +38,9 @@ def read_from_excel(path_to_file: str, sheet: str, cols: list) -> dict:
     return dataframe.to_dict()
 
 
-def write_to_excel(data_dict: dict, path_to_file: str, sheet: str = "python") -> None:
+def write_to_excel(
+    data_dict: dict, path_to_file: str, sheet: str = "python"
+) -> None:
     """
     Функция принимает подготовленные данные и записывает их в файл *.xlsx.
 
@@ -57,7 +59,7 @@ def write_to_excel(data_dict: dict, path_to_file: str, sheet: str = "python") ->
     else:
         day = datetime.now().strftime("%d-%m-%Y")
         time = datetime.now().strftime("%H:%M:%S")
-        message = f"Работа завершена {day} в {time}."
+        message = f"Запись в файл {path_to_file} завершена {day} в {time}."
         logging.info(message)
         print(message)
 
@@ -190,7 +192,7 @@ def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
             except IndexError as e:
                 error_message = (
                     f"{e} with index = {y},\n"
-                    f"last value before error = {list_in_dataset[y-1]},\n"
+                    f"last value before error = {list_in_dataset[y - 1]},\n"
                     f"common dataset length = {len(list_in_dataset)},\n"
                     f"keys prepared = {len(keys_list)}"
                 )
@@ -214,13 +216,15 @@ def string_proceed_casual(proc_string: str) -> str:
         .replace(";", "_")
         .replace("'", "")
         .replace(".", "_")
-        .replace('/', '_')
+        .replace("/", "_")
     )
 
 
 def string_proceed_universal(
-    proc_string: str, replacements_dict: dict, lower: bool = False,
-    upper: bool = False
+    proc_string: str,
+    replacements_dict: dict,
+    lower: bool = False,
+    upper: bool = False,
 ) -> str:
     """
     Гибкий обработчик строк, заменит любые символы на любые в строке.
@@ -240,7 +244,7 @@ def string_proceed_universal(
     строке не останется ни одной точки с запятой.
     """
     if lower and upper:
-        message = 'Ты уж определись как-то, что ты хочешь со строкой сделать.'
+        message = "Ты уж определись как-то, что ты хочешь со строкой сделать."
         raise SunctionStoreScriptError(message)
     if lower:
         proc_string = proc_string.lower()
@@ -254,31 +258,32 @@ def string_proceed_universal(
 
 
 def clean_string_from_forbidden_symbols(
-        string: str, handler: Any = None, extensions: list = None,
-        *handler_args: Any
+    string: str,
+    handler: Any = None,
+    extensions: list = None,
 ) -> str:
     if extensions:
         file_extension = string[-5:]
         for extension in extensions:
             if file_extension.endswith(extension):
                 string_parts = string.split(extension)
-                proceeded_parts = list(map(partial(handler, handler_args), string_parts))
+                proceeded_parts = list(map(handler, string_parts))
                 return extension.lower().join(proceeded_parts)
-    return handler(string, *handler_args)
+    return handler(string)
 
 
 def convert_image_to_jpg(file_path: str) -> str:
-    if '.heic' in file_path or '.HEIC' in file_path:
+    if ".heic" in file_path or ".HEIC" in file_path:
         new_file_name = file_path.strip(".heicHEIC")
         new_file_path = f"{new_file_name}.jpg"
-    elif '.webm' in file_path or '.WEBM' in file_path:
+    elif ".webp" in file_path or ".WEBP" in file_path:
         new_file_name = file_path.strip(".webmWEBM")
         new_file_path = f"{new_file_name}.jpg"
-    elif '.bmp' in file_path or '.bmp' in file_path:
+    elif ".bmp" in file_path or ".BMP" in file_path:
         new_file_name = file_path.strip(".bmpBMP")
         new_file_path = f"{new_file_name}.jpg"
     else:
-        splitted_file_path = file_path.split('.')
+        splitted_file_path = file_path.split(".")
         extension = splitted_file_path[-1]
         error_message = f"Files with .{extension} are not supported."
         logging.exception(error_message)
@@ -298,7 +303,9 @@ def convert_image_to_jpg(file_path: str) -> str:
         logging.exception(e)
 
 
-def collect_paths_from_tree(root_url, collect_files=False):
+def collect_paths_from_tree(
+    root_url: str, collect_files: bool = False
+) -> tuple:
     if not os.path.exists(root_url):
         err_message = (
             f"{root_url} does not exist. Check the path is correct "
@@ -322,7 +329,9 @@ def collect_paths_from_tree(root_url, collect_files=False):
     return dirs_list, files_list
 
 
-def rename_os_items(source, handler, *lists_to_handle):
+def rename_os_items(
+    source: str, handler: Callable, *lists_to_handle: list
+) -> tuple:
     for items_list in lists_to_handle:
         for old_item_name in items_list:
             item_name_elements = old_item_name.split("/")
@@ -335,7 +344,7 @@ def rename_os_items(source, handler, *lists_to_handle):
             except FileNotFoundError as e:
                 logging.exception(e)
                 lists_to_handle = collect_paths_from_tree(source, True)
-                return rename_os_items(handler, source, *lists_to_handle)
+                return rename_os_items(source, handler, *lists_to_handle)
             else:
                 logging.info(f"{old_item_name} renamed to {new_item_name}")
     return collect_paths_from_tree(source, True)
