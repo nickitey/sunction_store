@@ -60,14 +60,15 @@ def fill_table_with_links(
     for filename in processed_data:
         if ".heic" in filename:
             continue
-        parts_of_way = filename.split("/")
+        splitted_filename = filename.split(root)
+        parts_of_way = splitted_filename[-1].split("/")
         if handler:
             parts_of_way = list(map(handler, parts_of_way))
-        brand_folder = parts_of_way[-3]
-        model_folder = parts_of_way[-2]
-        image_file = parts_of_way[-1]
-        link_template = "catalog/suppliers/imperial/{}/{}/{}"
-        link = link_template.format(brand_folder, model_folder, image_file)
+        model_folder = parts_of_way[1]
+        link_template = "catalog/suppliers/imperial"
+        for subpath in range(len(parts_of_way)):
+            link_template += "/{}"
+        link = link_template.format(*parts_of_way)
         if model_folder not in data_template:
             # Если все же будет list, необходимо поменять тип данных здесь...
             # data_template[model_folder] = list()
