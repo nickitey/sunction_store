@@ -305,9 +305,9 @@ finish_day = datetime.now()
 finish_time = datetime.now()
 message = (
     f"Работа завершена {finish_day.strftime(date_format)} "
-    f"в {finish_time.strftime(time_format)}."
-    f"Продолжительность работы составила {finish_day - start_day} дней,"
-    f" {finish_time - start_time} часов/минут/секунд."
+    f"в {finish_time.strftime(time_format)}. "
+    f"Продолжительность работы составила {finish_time - start_time} "
+    f"часов/минут/секунд."
 )
 logging.info(message)
 print(message)
