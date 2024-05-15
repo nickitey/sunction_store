@@ -188,13 +188,14 @@ partial_string_cleaner = partial(
 
 proc_articles = {}
 for name in model.values():
-    proc_articles[name] = partial_string_cleaner(name)
+    proc_articles[name] = list()
+    proc_articles[name].append(partial_string_cleaner(name))
 
 # Это останется для готовых данных
 prep_data = {}
 for value in proc_articles.values():
     # Чуз ё файтер, как говорится (см. docstring к fill_table_with_links)
-    prep_data[value] = set()
+    prep_data[value[0]] = set()
     # prep_data[value] = list()
 
 # Здесь мы укажем адрес папки со всеми фотографиями, в которой наша программа
