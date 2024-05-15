@@ -273,11 +273,20 @@ for i in range(1000):
     keys_list.append(f"column no. {i}")
 
 # Подготовим данные к записи в файл
-to_write = main.prepare_data_for_pandas(prepared_for_conversion, keys_list)
+main_data = main.prepare_data_for_pandas(prepared_for_conversion, keys_list)
+
+articles_dict = main.prepare_data_for_pandas(proc_articles,
+                                             ['Артикул', "Перевод"])
+
+# Для удобства записи объединим их в один объект
+
+main_data = {**main_data, **articles_dict}
+
 
 # Запишем данные в файл. Имя будущего файла - тоже гибкая настройка,
 # можно выбрать любое
-main.write_to_excel(to_write, "imperial_optic_links_ver2.xlsx")
+main.write_to_excel(main_data, "imperial_optic_links_ver2.xlsx")
+
 
 # Напоследок физически переименуем все папки и файлы, опять же, зачистив имена
 # от недопустимых символов и грязи
