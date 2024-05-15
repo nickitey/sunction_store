@@ -172,7 +172,7 @@ extensions = [
 # Пожалуй здесь требуется какая-то ревизия кода что ли, потому что,
 # ну, 2 partial? Серьезно? Не слишком ли сложно в данной ситуации?
 
-partial_string_proceeder = partial(
+partial_string_processor = partial(
     main.string_proceed_universal,
     replacements_dict=replacement_patterns,
     lower=True,
@@ -180,7 +180,7 @@ partial_string_proceeder = partial(
 
 partial_string_cleaner = partial(
     main.clean_string_from_forbidden_symbols,
-    handler=partial_string_proceeder,
+    handler=partial_string_processor,
     extensions=extensions,
 )
 
