@@ -24,6 +24,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
+
 # Определяем одну из функций, которая будет работать в этой программе
 
 
@@ -64,7 +65,7 @@ def fill_table_with_links(
         parts_of_way = splitted_filename[-1].split("/")
         if handler:
             parts_of_way = list(map(handler, parts_of_way))
-        model_folder = parts_of_way[1]
+        model_folder = parts_of_way[-2]
         link_template = "catalog/suppliers/imperial"
         for subpath in range(len(parts_of_way)):
             link_template += "/{}"
@@ -101,7 +102,7 @@ print(message)
 
 input_table_file = "work_table.xlsx"
 sheet = "Лист1"
-cols = [3]
+cols = [1]
 
 # Читаем данные...
 input_data = main.read_from_excel(input_table_file, sheet, cols)
@@ -133,7 +134,7 @@ replacement_patterns = {
     "   ": " ",
     "  ": " ",
     " - ": "-",
-    ' -': "-",
+    " -": "-",
     " ": "_",
     "/": "-",
     ":": "_",
@@ -179,7 +180,7 @@ partial_string_processor = partial(
 )
 
 partial_string_cleaner = partial(
-    main.clean_string_from_forbidden_symbols,
+    main.process_string_except_extension,
     handler=partial_string_processor,
     extensions=extensions,
 )
@@ -200,8 +201,9 @@ for value in proc_articles.values():
 
 # Здесь мы укажем адрес папки со всеми фотографиями, в которой наша программа
 # будет работать
-# root = "/home/nikita/Desktop/Медицинские оправы"
-root = "/home/nikita/Desktop/Империал/imperial/opravy"
+root = "/home/nikita/Desktop/Медицинские оправы/"
+# root = "/home/nikita/Desktop/Империал/imperial/opravy/"
+
 
 # Соберем все имена файлов и папок, которые у нас есть
 raw_directories, raw_files = main.collect_paths_from_tree(root, True)
@@ -210,12 +212,14 @@ raw_directories, raw_files = main.collect_paths_from_tree(root, True)
 converted_file_list = [
     (
         main.convert_image_to_jpg(file)
-        if ".heic" in file
-        or ".HEIC" in file
-        or ".webp" in file
-        or ".WEBP" in file
-        or ".bmp" in file
-        or ".BMP" in file
+        if file.endswith(".heic")
+        or file.endswith(".HEIC")
+        or file.endswith(".webp")
+        or file.endswith(".WEBP")
+        or file.endswith(".bmp")
+        or file.endswith(".BMP")
+        or file.endswith(".tif")
+        or file.endswith(".TIF")
         else file
     )
     for file in raw_files
@@ -276,18 +280,21 @@ for i in range(1000):
 # Подготовим данные к записи в файл
 main_data = main.prepare_data_for_pandas(prepared_for_conversion, keys_list)
 
-articles_dict = main.prepare_data_for_pandas(proc_articles,
-                                             ['Артикул', "Перевод"])
+articles_dict = main.prepare_data_for_pandas(
+    proc_articles, ["Артикул", "Перевод"]
+)
 
 # Для удобства записи объединим их в один объект
 
-main_data = {**main_data, **articles_dict}
-
+main_data = {**articles_dict, **main_data}
 
 # Запишем данные в файл. Имя будущего файла - тоже гибкая настройка,
-# можно выбрать любое
-main.write_to_excel(main_data, "imperial_optic_links_ver2.xlsx")
+# можно выбрать любое.
+# Если быть точным, мы здесь выбираем не имя файла, а путь к нему, включая
+# имя самого файла. Если файл существует, он будет перезаписан, если нет -
+# создан.
 
+main.write_to_excel(main_data, "imperial_optic_links_ver2.xlsx")
 
 # Напоследок физически переименуем все папки и файлы, опять же, зачистив имена
 # от недопустимых символов и грязи
