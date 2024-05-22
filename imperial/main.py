@@ -24,14 +24,16 @@ class SunctionStoreScriptError(Exception):
 
 def read_from_excel(path_to_file: str, sheet: str, cols: list) -> dict:
     """
+
     Функция парсит xlsx-файл и возвращает словарь словарей, где ключи -
     названия столбцов, значения - словари, где ключи - номера строк,
-    значения - соответствеющие значения из ячеек таблицы.
+    значения - соответствующие значения из ячеек таблицы.
 
     :param path_to_file: Путь к файлу в формате *.xlsx
-    :param sheet: Название листа, на котором находятся требуемые данные
+    :param sheet: Название листа, на котором находятся требуемые данные.
     :param cols: Список колонок, которые необходимо собрать
     :return: Словарь словарей описанного формата
+
     """
     xl = pd.ExcelFile(path_to_file)
     dataframe = pd.read_excel(xl, sheet, usecols=cols)
@@ -42,6 +44,7 @@ def write_to_excel(
     data_dict: dict, path_to_file: str, sheet: str = "python"
 ) -> None:
     """
+
     Функция принимает подготовленные данные и записывает их в файл *.xlsx.
 
     :param data_dict: Словарь данных для записи в файл.
@@ -50,6 +53,7 @@ def write_to_excel(
     :param sheet: Название листа, на который будут записаны данные.
     По-умолчанию - "python".
     :return: Ничего.
+
     """
     to_write_db = pd.DataFrame.from_dict(data_dict)
     try:
@@ -64,29 +68,79 @@ def write_to_excel(
         print(message)
 
 
-def test_data_dict(data_dict, test_asset):
+def test_data_dict(data_dict: dict, test_asset: dict) -> bool:
+    """
+
+    Функция тестирует ассеты с данными: проверяет переданный есть
+    на тестирование словарь 'data_dict' и сверяет его с эталонным
+    словарем 'test_asset'.
+
+    :param data_dict: Проверяемый словарь с данными.
+    :param test_asset: Проверочный, эталонный словарь. Количество
+    элементов в нем меньше или равно таковому в проверяемом словаре.
+    Проверка происходит именно по ключам тестового словаря.
+    :return: Булево значение: True, если тест пройден, False в обратном
+    случае.
+
+    """
     def compare_details(item1, item2):
+        """
+
+        Функция для глубокой сверки двух объектов на идентичность.
+        В ходе разработки обнаружилась небольшая особенность:
+        два nan не равны друг другу, хотя оба вроде бы Not a Number
+        типа float. Соответственно, два любых других элемента (списки,
+        словари и др.), которые содержат nan, будут не равны друг другу,
+        поскольку в них есть как минимум один отличающийся друг от друга
+        элемент nan. Поэтому функция вызывается только в сложных случаях
+        и проводит более подробное сравнение двух элементов, включая проверку
+        на nan.
+        Поддерживается как сравнение двух объектов типа float, так и двух
+        объектов типа list.
+
+        :param item1: Сверяемый элемент № 1.
+        :param item2: Сверяемый элемент № 2.
+        :return: True, если объекты равны, False в обратном случае.
+
+        """
         if isinstance(item1, float) and isinstance(item2, float):
+            # Если оба объекта типа float...
             if not (math.isnan(item1) and math.isnan(item2)):
+                # Но при этом оба одновременно не nan...
                 print("nan and nan")
+                # Они не равны.
                 return False
             return True
         elif isinstance(item1, list) and isinstance(item2, list):
+            # Если оба объекта типа list...
             if len(item1) != len(item2):
+                # Но при этом разной длины...
                 print("different length")
+                # Они не равны.
                 return False
             for i in range(len(item1)):
+                # Если все же они одной длины...
                 if isinstance(item1[i], float) and isinstance(item2[i], float):
+                    # Грубо нарушется принцип "DON'T REPEAT YOURSELF"
+                    # и повторяется проверка равенства двух float.
                     if not (math.isnan(item1[i]) and math.isnan(item2[i])):
                         print("nan and nan in list")
+                        # Принципиальная разница в том, что здесь хоть
+                        # программа подсказывает, что объекты типа list
+                        # не равны, потому что в них есть nan.
                         return False
                 elif item1[i] != item2[i]:
+                    # Ну или если просто есть два списка с разными элементами
                     print("different elements in list")
-                    print(type(item1[i]), type(item2[i]))
-                    print(item1[i], item2[i])
+                    # Мы об этом узнаем
+                    print(f"{item1[i]} with type {type(item1[i])} differs "
+                          f"from {item2[i]} with type {type(item2[i])}")
+                    # А еще узнаем, что за элементы и какого они типа данных
                     return False
         else:
+            # Ну или просто два разных типа данных переданы в функцию
             print("different types")
+            # Как же они могут быть равны
             return False
         return True
 
@@ -124,12 +178,20 @@ def split_and_clean_strings(
 ) -> list:
     """
 
-    :param string: string to process | str
-    :param delimiter: delimiter for splitting string | str
-    :param replace_from: if used, selects the pattern in substring to replace
-    :param replace_to: if used with replace_from-parameter, used as replace
-           for replaced pattern
-    :return: list of initial string's parts | list
+    Небольшая функция, которая принимает строку, разделяет ее на список
+    подстрок по подстроке 'delimiter', после чего каждую зачищает методом
+    strip(), если необходимо, заменяет какой-то паттерн 'replace_from'
+    на 'replace_to' и возвращает список подстрок.
+
+    :param string: Строка для обработки.
+    :param delimiter: Подстрока, по которой происходит разделение.
+    :param replace_from: Если использовано, определяет, какая подстрока
+    будет заменена в каждой подстроке в получившемся списке.
+    :param replace_to: Если использовано, определяет, на какую подстроку
+    будет заменена подстрока 'replace_from' в каждой подстроке в получившемся
+    списке.
+    :return: Список из подстрок оригинальной строки.
+
     """
     substrings_list = string.split(delimiter)
     for i in range(len(substrings_list)):
@@ -144,11 +206,16 @@ def split_and_clean_strings(
 def clear_empty_keys(dictionary: dict) -> dict:
     """
 
-    :param dictionary: python dictionary with any numbers of keys
-    :return: same dictionary but without keys which values are zero-length:
-    strings, dictionaries, lists, sets, tuples
+    Функция очищает словарь от ключей с "пустыми" значениями.
 
-    NB! If key's value has no 'length' attribute, TypeError rises.
+    :param dictionary: Словарь с произвольным количеством ключей.
+    :return: Тот же словарь, но без ключей, значения которых имеют
+    значение с "нулевой" длиной: строки, словари, списки, множества,
+    кортежи.
+
+    NB! Если у значения какого-либо ключа нет атрибута "длина" (int, float,
+    bool, None), поднимается исключение, основанное на TypeError.
+
     """
     try:
         return {
@@ -168,12 +235,24 @@ def clear_empty_keys(dictionary: dict) -> dict:
 def prepare_data_for_pandas(dataset: dict, keys_list: list) -> dict:
     """
 
-    :param dataset: dataset to be processed; typically result of manipulation
-    with source data.
-    :param keys_list: column headers after prepared data is parsed
-    and converted with pandas to table file.
-    :return: dictionary with keys from keys_list, values are also dictionary
-    where keys represent strings numbers in table file.
+    После чтения данных из файлов данные, содержащиеся в них, представлены
+    в виде словаря словарей, где ключи "первого уровня" - заголовки столбцов,
+    их значения - словари данных из столбца. В словарях "второго уровня" ключи
+    представляют собой номера строк, а значения - данные из соответствующих
+    ячеек.
+    Функция подготавливает переданный словарь в словарь, подготовленный
+    для записи с помощью pandas в *.xlsx-файл: в нем данные в словаре
+    произвольного вида преобразуются в словарь словарей вида, аналогичного
+    тому, который появляется в результате чтения файла.
+
+    :param dataset: Словарь данных, в котором ключи - итерируемые объекты.
+    :param keys_list: Список ключей, которые будут заголовками столбцов
+    итоговой таблицы.
+    :return: Словарь, где ключи - элементы списка 'keys_list', значения -
+    словари, в которых ключи - номера строк будущей таблицы, значения -
+    данные в ячейках на пересечении столбца из списка 'keys_list' и номера
+    строки.
+
     """
     data_keys = list(dataset.keys())
     prepared_data = {key: {} for key in keys_list}
@@ -227,13 +306,14 @@ def string_proceed_universal(
     upper: bool = False,
 ) -> str:
     """
+
     Гибкий обработчик строк, заменит любые символы на любые в строке.
     Альтернатива длинной цепочке вызовов метода replace().
 
     :param proc_string: Обрабатываемая строка.
-    :param replacements_dict: Словарь, где ключи - символы (их комбинации),
-    которые нужно заменить, значения - символы (их комбинации), на которые
-    их нужно заменить.
+    :param replacements_dict: Словарь, где ключи - заменяемые символы
+    (их комбинации), а значения - символы (их комбинации), на которые
+    будет происходить замена.
     :param lower: Если True, переводит строку в нижний регистр.
     :param upper: Если True, переводит строку в верхний регистр.
     :return: Обработанная строка.
@@ -242,6 +322,7 @@ def string_proceed_universal(
     заменить, по очереди их вхождения в словарь. Поэтому если в словаре
     замен сначала встретится {'.': ';'}, а потом {';': ' '}, то в обработанной
     строке не останется ни одной точки с запятой.
+
     """
     if lower and upper:
         message = "Ты уж определись как-то, что ты хочешь со строкой сделать."
@@ -257,11 +338,30 @@ def string_proceed_universal(
     return proc_string
 
 
-def clean_string_from_forbidden_symbols(
+def process_string_except_extension(
     string: str,
     handler: Any = None,
     extensions: list = None,
 ) -> str:
+    """
+
+    Функция принимает на вход строку - имя файла, разбивает ее на подстроки:
+    название и расширение, обратаывает переданной функцией только название,
+    после чего возвращает склеенные обработанную строку и расширение
+    (расшириение возвращается в нижнем регистре, независимо от того,
+    в каком оно было в исходном имени файла).
+
+    :param string: Исходная строка (как правило, имя файла)
+    :param handler: Функция-обработчик строк (замена символов, изменение
+    регистра и др.)
+    :param extensions: Итерируемый объект, содержащий возможные расширения
+    файлов, которые не подлежат обработке.
+    Расширения, не переданные явно в функцию, воспринимаются как часть строки
+    и обрабатываются по общим правилам функции 'handler'.
+    :return: Обработанная строка (как правило, обработанное имя файла
+    и расшиирение).
+
+    """
     if extensions:
         file_extension = string[-5:]
         for extension in extensions:
@@ -319,18 +419,34 @@ def convert_image_to_jpg(file_path: str) -> str:
 
 
 def collect_paths_from_tree(
-    root_url: str, collect_files: bool = False
+    root_path: str, collect_files: bool = False
 ) -> tuple:
-    if not os.path.exists(root_url):
+    """
+
+    Используя возможности функции path() из модуля os стандартной библиотеки,
+    функция осуществляет рекурсивный обход по директории, путь к которой
+    передан в функцию, а также по всем вложенным директориям, собирая адреса
+    указанных директорий и, если в параметр collect_files передан аргумент
+    True, всех содержащихся в них файлов.
+
+    :param root_path: Адрес корневой директории, с которой начинается обход.
+    :param collect_files: Булево значение: если True, функция собирает адреса
+    файлов по пути рекурсивного обхода, если False - не собирает.
+    :return: Кортеж списков, первый - список адресов всех директорий,
+    второй - список адресов всех файлов внутри корневой директории и всех
+    дочерних.
+
+    """
+    if not os.path.exists(root_path):
         err_message = (
-            f"{root_url} does not exist. Check the path is correct "
+            f"{root_path} does not exist. Check the path is correct "
             f"and retry."
         )
         logging.exception(err_message)
         raise SunctionStoreScriptError(err_message)
     dirs_list = []
     files_list = []
-    for cur_dir, subdirs, files in walk(root_url):
+    for cur_dir, subdirs, files in walk(root_path):
         dirs_list.append(path.abspath(cur_dir))
         if collect_files:
             for file in files:
@@ -347,6 +463,21 @@ def collect_paths_from_tree(
 def rename_os_items(
     source: str, handler: Callable, *lists_to_handle: list
 ) -> tuple:
+    """
+
+    Функция принимает список адресов объектов (файлы, директории),
+    обрабатывает указанные адреса переданной функцией "handler()",
+    после чего фактически их переименовывает.
+
+    :param source: Адрес корневой директории, в которой находятся все
+    объекты, подлежащие переименованию.
+    :param handler: Функция-обработчик, определяющая изменения, которым
+    будут подвергнуты переданные основной функции адреса объектов.
+    :param lists_to_handle: Списки объектов, которые необходимо переименовать.
+    :return: Результат работы функции collect_paths_from_tree: списки новых
+    адресов переименованных объектов.
+
+    """
     for items_list in lists_to_handle:
         for old_item_name in items_list:
             item_name_elements = old_item_name.split("/")
