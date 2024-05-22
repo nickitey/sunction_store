@@ -273,14 +273,29 @@ def clean_string_from_forbidden_symbols(
 
 
 def convert_image_to_jpg(file_path: str) -> str:
-    if ".heic" in file_path or ".HEIC" in file_path:
+    """
+
+    Используя возможности пакета Pillow, преобразовывает изображения форматов
+    *.heic, *.webp, *.bmp, *.tiff в изображение формата *.jpg. Качество
+    изображения при этом не изменяется.
+    Попытка конвертировать изображение другого формата вызовет ошибку.
+
+    :param file_path: Полный путь к исходному файлу изображения.
+    :return: Полный путь к преобразованному изображению.
+    Само преобразованное изображение появляется в одной директории с исходным.
+
+    """
+    if file_path.endswith(".heic") or file_path.endswith(".HEIC"):
         new_file_name = file_path.strip(".heicHEIC")
         new_file_path = f"{new_file_name}.jpg"
-    elif ".webp" in file_path or ".WEBP" in file_path:
+    elif file_path.endswith(".webp") or file_path.endswith(".WEBP"):
         new_file_name = file_path.strip(".webmWEBM")
         new_file_path = f"{new_file_name}.jpg"
-    elif ".bmp" in file_path or ".BMP" in file_path:
+    elif file_path.endswith(".bmp") or file_path.endswith(".BMP"):
         new_file_name = file_path.strip(".bmpBMP")
+        new_file_path = f"{new_file_name}.jpg"
+    elif file_path.endswith(".tif") or file_path.endswith(".tif"):
+        new_file_name = file_path.strip(".tifTIF")
         new_file_path = f"{new_file_name}.jpg"
     else:
         splitted_file_path = file_path.split(".")
