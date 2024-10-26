@@ -49,15 +49,24 @@ def write_to_excel(
 
     :param data_dict: Словарь данных для записи в файл.
     :param path_to_file: Путь к файлу. Если такого файла нет, он будет создан.
-    Если файл есть - перезапишется без сожаления и возможности восстановления
+    Если файл есть, и в нем существует такой лист, произойдет перезапись листа
+    без сожаления и возможности восстановления. Если файл есть, но листа нет - 
+    такой лист добавится. 
     :param sheet: Название листа, на который будут записаны данные.
     По-умолчанию - "python".
     :return: Ничего.
 
     """
     to_write_db = pd.DataFrame.from_dict(data_dict)
+    writemode = "a" if os.path.isfile(path_to_file) else "w"
     try:
-        to_write_db.to_excel(path_to_file, sheet_name=sheet)
+        with pd.ExcelWriter(
+            path_to_file,
+            engine="openpyxl",
+            mode=writemode,
+            if_sheet_exists="replace" if writemode == "a" else None,
+        ) as writer:
+            to_write_db.to_excel(writer, sheet_name=sheet)
     except Exception as e:
         logging.exception(e)
     else:
@@ -83,6 +92,7 @@ def test_data_dict(data_dict: dict, test_asset: dict) -> bool:
     случае.
 
     """
+
     def compare_details(item1, item2):
         """
 
@@ -133,8 +143,10 @@ def test_data_dict(data_dict: dict, test_asset: dict) -> bool:
                     # Ну или если просто есть два списка с разными элементами
                     print("different elements in list")
                     # Мы об этом узнаем
-                    print(f"{item1[i]} with type {type(item1[i])} differs "
-                          f"from {item2[i]} with type {type(item2[i])}")
+                    print(
+                        f"{item1[i]} with type {type(item1[i])} differs "
+                        f"from {item2[i]} with type {type(item2[i])}"
+                    )
                     # А еще узнаем, что за элементы и какого они типа данных
                     return False
         else:
